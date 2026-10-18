@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="慣れた言語で話せる、自動翻訳チャット。メッセージを相手が読む言語に翻訳し、友人との会話をつなぎます。">
+  <title>翻訳チャット · Translate Chat</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <main id="entry-view" class="entry-view">
+    <header class="entry-header">
+      <a class="brand" href="/" aria-label="翻訳チャット" data-i18n-label="appName">
+        <span class="brand-icon" aria-hidden="true">文<span>A</span></span>
+        <span data-i18n="appName">翻訳チャット</span>
+      </a>
+      <div id="ui-language-switch" class="ui-language-switch" role="group" aria-label="画面の表示言語">
+        <button type="button" data-ui-language="ja" lang="ja" aria-pressed="true">日本語</button>
+        <button type="button" data-ui-language="en" lang="en" aria-pressed="false">English</button>
+      </div>
+    </header>
+    <div class="entry-layout">
+      <section class="intro" aria-labelledby="intro-title">
+        <div class="eyebrow"><span class="live-dot"></span><span data-i18n="eyebrow">メッセージを自動翻訳するチャット</span></div>
+        <h1 id="intro-title" data-i18n="headline">慣れた言語で話そう！</h1>
+        <section class="conversation-preview chat-preview" aria-label="会話例" data-i18n-label="exampleConversation">
+          <header class="preview-chat-header"><span data-i18n="conversation">友人との会話</span><span class="reading-badge" data-i18n="previewReadingLanguage">日本語</span></header>
+          <ol class="messages preview-messages" aria-label="会話履歴" data-i18n-label="conversationHistory">
+            <li class="message">
+              <span class="avatar" aria-hidden="true">A</span>
+              <div class="message-content">
+                <div class="message-meta"><strong>Alex</strong><time datetime="10:30">10:30</time></div>
+                <div class="bubble">
+                  <p class="message-text" data-i18n="previewMessage">今週末、一緒にご飯に行かない？</p>
+                  <small class="translation-label" data-i18n="previewTranslated">日本語に翻訳</small>
+                  <details class="original-details"><summary data-i18n="showOriginal">原文を見る</summary><p data-i18n="previewOriginal">Want to grab a bite this weekend?</p></details>
+                </div>
+              </div>
+            </li>
+            <li class="message own">
+              <span class="avatar" aria-hidden="true">H</span>
+              <div class="message-content">
+                <div class="message-meta"><strong>Haru (<span data-i18n="you">あなた</span>)</strong><time datetime="10:31">10:31</time></div>
+                <div class="bubble"><p class="message-text" data-i18n="previewReply">いいね！何を食べよう？</p></div>
+              </div>
+            </li>
+            <li class="message">
+              <span class="avatar" aria-hidden="true">A</span>
+              <div class="message-content">
+                <div class="message-meta"><strong>Alex</strong><time datetime="10:32">10:32</time></div>
+                <div class="bubble">
+                  <p class="message-text" data-i18n="previewFollowup">ピザはどう？</p>
+                  <small class="translation-label" data-i18n="previewTranslated">日本語に翻訳</small>
+                  <details class="original-details"><summary data-i18n="showOriginal">原文を見る</summary><p data-i18n="previewFollowupOriginal">How about pizza?</p></details>
+                </div>
+              </div>
+            </li>
+          </ol>
+        </section>
+        <div class="intro-features">
+          <span><span aria-hidden="true">◎</span><span data-i18n="featureRoom">ルームIDで参加</span></span>
+          <span><span aria-hidden="true">↔</span><span data-i18n="featureTranslation">メッセージを自動翻訳</span></span>
+          <span><span aria-hidden="true">◷</span><span data-i18n="featureHistory">会話履歴を保存</span></span>
+        </div>
+      </section>
+      <section class="entry-card" aria-labelledby="entry-title">
+        <p class="section-kicker" data-i18n="welcome">ようこそ</p>
+        <h2 id="entry-title" data-i18n="startConversation">会話をはじめる</h2>
+        <p class="card-intro" data-i18n="noAccount">アカウント登録は必要ありません。</p>
+        <div class="mode-tabs" role="tablist" aria-label="部屋の作成・参加" data-i18n-label="roomMode">
+          <button id="create-tab" type="button" role="tab" aria-selected="true" aria-controls="room-form" data-i18n="createTab">部屋を作る</button>
+          <button id="join-tab" type="button" role="tab" aria-selected="false" aria-controls="room-form" data-i18n="joinTab">部屋に参加</button>
+        </div>
+        <form id="room-form" novalidate>
+          <label for="display-name" data-i18n="displayName">表示名</label>
+          <input id="display-name" name="displayName" autocomplete="nickname" maxlength="60" placeholder="例：はる" data-placeholder="namePlaceholder" required aria-describedby="name-hint">
+          <p class="field-hint" id="name-hint" data-i18n="nameHint">友人に表示される名前（30文字以内）</p>
+          <label for="language" data-i18n="readingLanguage">メッセージを読む言語</label>
+          <select id="language" name="language"><option value="ja" data-i18n="languageJa">日本語</option><option value="en" data-i18n="languageEn">英語</option></select>
+          <div id="room-code-field" hidden>
+            <label for="room-code" data-i18n="roomId">ルームID</label>
+            <input id="room-code" name="roomCode" class="code-input" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="18" placeholder="ABCD-EFGH-JKLM" aria-describedby="code-hint">
+            <p class="field-hint" id="code-hint" data-i18n="codeHint">友人から受け取ったIDを入力してください。</p>
+          </div>
+          <p id="entry-error" class="error-message" role="alert" tabindex="-1" hidden></p>
+          <button id="enter-button" class="primary-button enter-button" type="submit"><span id="enter-label" data-i18n="createAction">部屋を作って入室</span><span aria-hidden="true">→</span></button>
+        </form>
+        <p class="privacy-note"><span aria-hidden="true">ⓘ</span><span data-i18n="historyNotice">ルームIDを知る人は、過去の会話も閲覧できます。IDは会話する友人にだけ伝えてください。</span></p>
+      </section>
+    </div>
+  </main>
+
+  <main id="chat-view" class="chat-view" hidden>
+    <aside id="room-sidebar" class="room-sidebar" tabindex="0" aria-labelledby="sidebar-title">
+      <div id="sidebar-title" class="brand sidebar-brand"><span class="brand-icon" aria-hidden="true">文<span>A</span></span><span data-i18n="appName">翻訳チャット</span></div>
+      <section class="room-code-box" aria-labelledby="code-title">
+        <h2 id="code-title" data-i18n="roomId">ルームID</h2>
+        <p id="current-room-code" class="current-code"></p>
+        <button id="copy-code" type="button" class="copy-button" data-i18n="copyCode">IDをコピー</button>
+        <p data-i18n="shareHint">このIDを友人に伝えて招待しよう。</p>
+      </section>
+      <section class="members-section" aria-labelledby="members-title">
+        <h2 id="members-title"><span data-i18n="members">参加中のメンバー</span><span id="member-count" class="member-count">0</span></h2>
+        <ul id="members-list" class="members-list"></ul>
+      </section>
+      <div class="sidebar-bottom">
+        <p data-i18n="sidebarPrivacy">翻訳はこのPC内で処理します。会話履歴はアプリに保存されます。</p>
+        <button id="leave-room" class="leave-button" type="button"><span aria-hidden="true">↗</span><span data-i18n="leave">部屋を退出</span></button>
+      </div>
+    </aside>
+    <div id="sidebar-resizer" class="sidebar-resizer" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="room-sidebar" aria-label="サイドバーの幅を変更" data-i18n-label="resizeSidebar" title="ドラッグまたは左右キーで幅を変更。ダブルクリックで元に戻す。" data-i18n-title="resizeSidebarHint"></div>
+    <section class="conversation" aria-labelledby="conversation-title">
+      <header class="conversation-header">
+        <div><p class="section-kicker" data-i18n="roomKicker">会話ルーム</p><h1 id="conversation-title" data-i18n="conversation">友人との会話</h1></div>
+        <div class="reading-badge"><span aria-hidden="true">文 A</span><span id="current-language"></span></div>
+      </header>
+      <div class="status-strip">
+        <div class="translation-status"><span id="translation-dot" class="status-dot"></span><span id="translation-status" role="status" aria-live="polite"></span></div>
+        <button id="prepare-translation" type="button" class="text-button" data-i18n="prepareTranslation">翻訳を準備する</button>
+      </div>
+      <p id="connection-status" class="connection-status" role="status" hidden></p>
+      <div id="messages-scroll" class="messages-scroll" tabindex="0" aria-label="会話履歴" data-i18n-label="conversationHistory">
+        <div class="history-loader"><button id="load-history" class="text-button" type="button" data-i18n="olderMessages" hidden>以前の会話を読む</button></div>
+        <div id="empty-chat" class="empty-chat"><span class="empty-icon" aria-hidden="true">↔</span><h2 data-i18n="emptyTitle">ここから、会話がはじまります。</h2><p data-i18n="emptyDescription">ルームIDを友人に伝えて、<br>慣れた言語で話しかけてみましょう。</p></div>
+        <ol id="messages" class="messages" aria-label="メッセージ" data-i18n-label="messageList"></ol>
+      </div>
+      <div class="composer-area">
+        <button id="new-messages" class="new-messages" type="button" data-i18n="newMessages" hidden>新しいメッセージ ↓</button>
+        <p id="send-error" class="error-message" role="alert" hidden></p>
+        <form id="message-form" class="composer">
+          <label class="sr-only" for="message-input" data-i18n="messageLabel">メッセージ</label>
+          <textarea id="message-input" rows="2" maxlength="4000" placeholder="メッセージを入力…" data-placeholder="messagePlaceholder" aria-describedby="composer-hint" required></textarea>
+          <button id="send-button" type="submit" class="send-button"><span data-i18n="send">送信</span><span aria-hidden="true">↑</span></button>
+        </form>
+        <div class="composer-hint" id="composer-hint"><span data-i18n="keyboardHint">Enterで送信 · Shift + Enterで改行</span><span id="character-count">0 / 2,000</span></div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="leave-confirm" aria-labelledby="leave-confirm-title">
+    <h2 id="leave-confirm-title" data-i18n="unsentTitle">未送信のメッセージがあります</h2>
+    <p data-i18n="unsentDescription">退出すると、入力中の文章は破棄されます。</p>
+    <div class="dialog-actions"><button id="cancel-leave" type="button" class="text-button" data-i18n="keepWriting">会話に戻る</button><button id="confirm-leave" type="button" class="primary-button" data-i18n="discardAndLeave">破棄して退出</button></div>
+  </dialog>
+</body>
+</html>

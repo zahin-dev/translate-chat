@@ -1,0 +1,13 @@
+.git/
+.github/
+.local/
+.tools/
+target/
+tests/
+src/test/
+scripts/
+week1/
+*.ps1
+*.log
+.env
+.env.*

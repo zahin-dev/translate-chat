@@ -10,6 +10,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -163,5 +166,40 @@ class ChatIntegrationTest {
                 .header("Origin","https://unrelated.example").header("Content-Type","application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{\"displayName\":\"Forged\",\"language\":\"en\"}")).build();
         assertEquals(403,client.send(forged,HttpResponse.BodyHandlers.ofString()).statusCode());
+    }
+
+    @Test void concurrentSendsCannotCommitAYoungerMessageBeforeAnOlderOne() throws Exception {
+        var member = room("Concurrent messages", "en");
+        UUID participant = UUID.fromString(member.get("participantId").asText());
+        UUID roomId = db.queryForObject("SELECT room_id FROM chat_participants WHERE id=?", UUID.class, participant);
+        try (var transaction = db.getDataSource().getConnection();
+             var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            transaction.setAutoCommit(false);
+            try {
+                try (var lock = transaction.prepareStatement("SELECT id FROM chat_rooms WHERE id=? FOR NO KEY UPDATE")) {
+                    lock.setObject(1, roomId);
+                    lock.executeQuery().close();
+                }
+                try (var insert = transaction.prepareStatement("INSERT INTO chat_messages(room_id,participant_id,client_id,original_text,source_language) VALUES (?,?,?,?,?)")) {
+                    insert.setObject(1, roomId);
+                    insert.setObject(2, participant);
+                    insert.setObject(3, UUID.randomUUID());
+                    insert.setString(4, "Earlier transaction");
+                    insert.setString(5, "en");
+                    insert.executeUpdate();
+                }
+                var later = executor.submit(() -> send(member, "Later transaction", "en"));
+                assertThrows(TimeoutException.class, () -> later.get(500, TimeUnit.MILLISECONDS),
+                        "Later sends must wait for the earlier message to commit");
+                transaction.commit();
+                var savedLater = later.get(5, TimeUnit.SECONDS);
+                var state = node(request("GET", path(member) + "/state", member, null));
+                assertEquals(2, state.get("messages").size());
+                assertEquals("Earlier transaction", state.at("/messages/0/text").asText());
+                assertEquals(savedLater.get("id"), state.at("/messages/1/id"));
+            } finally {
+                transaction.rollback();
+            }
+        }
     }
 }

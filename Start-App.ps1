@@ -4,5 +4,5 @@ $ErrorActionPreference = 'Stop'
 Use-LocalJava
 Start-LocalDatabase
 $env:PORT = [string]$AppPort
-Write-Host "Translate Chat: http://localhost:$AppPort/ (Ctrl+C で終了 / to stop)"
+Write-Host "Talklear: http://localhost:$AppPort/ (Ctrl+C で終了 / to stop)"
 Invoke-ProjectMaven @('-q', '-DskipTests', 'spring-boot:run')

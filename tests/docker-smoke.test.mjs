@@ -34,7 +34,9 @@ async function waitForApp() {
 test('Docker UI, group chat, origin validation and saved history', {timeout: 180000}, async () => {
   await waitForApp();
   const home = await request('/');
-  assert.match(await home.text(), /app\.js/);
+  const html = await home.text();
+  assert.match(html, /app\.js/);
+  assert.match(html, /<title>トークリア｜自動翻訳チャット<\/title>/);
 
   const rejected = await request('/api/rooms', {displayName: 'Untrusted', language: 'ja'}, null, 'https://untrusted.example');
   assert.equal(rejected.status, 403);

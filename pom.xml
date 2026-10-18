@@ -10,8 +10,8 @@
   <groupId>jp.translatechat</groupId>
   <artifactId>translate-chat</artifactId>
   <version>0.1.0</version>
-  <name>Translate Chat</name>
-  <description>Japanese and English room chat with on-device translation</description>
+  <name>Talklear</name>
+  <description>Talklear: room chat with on-device automatic translation</description>
   <properties><java.version>21</java.version></properties>
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>

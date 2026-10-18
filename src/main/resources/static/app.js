@@ -1,13 +1,14 @@
 import {translations} from './translations.js';
 import {LocalTranslator} from './translator.js';
 import {initResizableSidebar} from './sidebar.js';
+import {MessageFeed} from './message-feed.js';
 
 const $ = id => document.getElementById(id);
 let language = 'ja';
 let readingLanguage = 'ja';
 let mode = 'create';
 let membership = null;
-let latestMessageId = 0;
+const messageFeed = new MessageFeed();
 let pollTimer = null;
 let pollGeneration = 0;
 let sending = false;
@@ -27,7 +28,7 @@ function saveStorage(storage, key, value) {
 function changeLanguage(value) {
   language = value === 'en' ? 'en' : 'ja';
   document.documentElement.lang = language;
-  document.title = t('appName');
+  document.title = t('appTitle');
   document.querySelector('meta[name="description"]').content = t('appDescription');
   document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
   document.querySelectorAll('[data-placeholder]').forEach(node => { node.placeholder = t(node.dataset.placeholder); });
@@ -155,11 +156,11 @@ async function translateEntry(entry) {
   }
 }
 
-function appendMessages(messages, prepend = false) {
+function appendMessages(messages, prepend = false, received = false) {
   const scroll = $('messages-scroll');
   const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 140;
   const oldHeight = scroll.scrollHeight;
-  const incoming = messages.filter(message => !messageEntries.has(message.id)).sort((a,b) => a.id-b.id);
+  const incoming = received ? messageFeed.receive(messages) : messageFeed.add(messages);
   if (!incoming.length) { return; }
   const fragment = document.createDocumentFragment();
   const newEntries = [];
@@ -189,9 +190,15 @@ function appendMessages(messages, prepend = false) {
     const entry = {message,node:row,text,label,details,failed:false};
     messageEntries.set(message.id,entry);
     newEntries.push(entry);
-    latestMessageId = Math.max(latestMessageId,message.id);
   });
-  prepend ? $('messages').prepend(fragment) : $('messages').append(fragment);
+  if (prepend) { $('messages').prepend(fragment); }
+  else {
+    // A send response can arrive before an earlier message from another participant.
+    for (const entry of newEntries) {
+      const next = Array.from($('messages').children).find(row => Number(row.dataset.messageId) > entry.message.id);
+      $('messages').insertBefore(entry.node, next ?? null);
+    }
+  }
   $('empty-chat').hidden = true;
   newEntries.forEach(translateEntry);
   if (prepend) { scroll.scrollTop += scroll.scrollHeight - oldHeight; }
@@ -217,7 +224,7 @@ async function openRoom(member) {
   clearTimeout(pollTimer);
   const generation = ++pollGeneration;
   membership = member;
-  latestMessageId = 0;
+  messageFeed.clear();
   pendingSend = null;
   messageEntries.clear();
   membersSignature = '';
@@ -243,11 +250,11 @@ async function poll(generation) {
   if (!membership || generation !== pollGeneration) { return; }
   let delay = 2000;
   try {
-    const wasInitial = latestMessageId === 0;
-    const result = await api(`/rooms/${membership.roomCode}/state?after=${latestMessageId}`);
+    const wasInitial = messageFeed.cursor === 0;
+    const result = await api(`/rooms/${membership.roomCode}/state?after=${messageFeed.cursor}`);
     if (generation !== pollGeneration) { return; }
     renderMembers(result.participants);
-    appendMessages(result.messages);
+    appendMessages(result.messages,false,true);
     if (wasInitial) { $('load-history').hidden = !result.hasMoreHistory; }
     $('connection-status').hidden = true;
   } catch (error) {

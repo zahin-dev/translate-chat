@@ -1,4 +1,4 @@
-# 翻訳チャット / Translate Chat
+# トークリア｜自動翻訳チャット
 
 [![Build and test](https://github.com/zahin-dev/translate-chat/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zahin-dev/translate-chat/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-orange)
@@ -9,7 +9,9 @@
 
 言語が異なる友人と、翻訳アプリに文章をコピーする手間なく会話するためのWebアプリです。ルームIDで同じ部屋に参加し、それぞれが選んだ言語でメッセージを読めます。1対1とグループでの雑談に対応しています。
 
-現在の対応言語は日本語・英語です。「翻訳チャット」は仮の表示名です。
+正式名称は日本語 **「トークリア」**、英語 **「Talklear」** です。Talk（会話）＋Clear（明確に伝わる）を組み合わせています。現在の対応言語は日本語・英語です。
+
+GitHubのリポジトリ名 `translate-chat`、DB名、Dockerの保存領域名等は、既存の接続先と会話履歴を引き継ぐための技術上の識別子です。画面や資料で使うアプリ名は「トークリア / Talklear」に統一しています。
 
 ## 目次
 
@@ -46,7 +48,7 @@
 | ローカル版 | 完成。Windows上で起動・会話・翻訳を確認済み。 |
 | Docker版 | ローカルで起動、グループ会話、双方向翻訳、コンテナ再作成後の履歴保持を確認済み。 |
 | ソースコード | [GitHubで公開中](https://github.com/zahin-dev/translate-chat)。 |
-| 自動検証 | [JUnit・JavaScriptテスト・コンテナビルドが成功](https://github.com/zahin-dev/translate-chat/actions/runs/39104069979)。 |
+| 自動検証 | [GitHub Actions](https://github.com/zahin-dev/translate-chat/actions/workflows/ci.yml)でJUnit・JavaScript・Dockerの検証を実行。最新の結果をリンク先で確認できます。 |
 | クラウド版 | Vercelプロジェクトを作成済み。Neon接続・環境変数設定・デプロイ・公開URLでの検証は準備中。 |
 | アプリの公開URL | 未発行。現在はローカル環境で利用できます。 |
 
@@ -93,7 +95,7 @@ Docker Desktopを起動し、プロジェクトのフォルダで実行します
 .\Start-Docker.ps1
 ```
 
-準備完了後、**[http://localhost:8080/](http://localhost:8080/)** を開きます。アプリとDBはバックグラウンドで動きます。終了する場合は実行します。
+準備完了後、**起動コマンドに表示されたURL**を開きます。初回の標準は [http://localhost:8080/](http://localhost:8080/) です。ポートを変更した場合は、保存した番号のURLを使います。アプリとDBはバックグラウンドで動きます。終了する場合は実行します。
 
 ```powershell
 .\Stop-Docker.ps1
@@ -188,7 +190,7 @@ cd translate-chat
 | `.\Start-App.ps1 -AppPort 8081` | アプリを別のポートで起動。開くURLは `http://localhost:8081/`。 |
 | `Ctrl + C` | 起動中のアプリを終了。DBは停止しません。 |
 | `.\Stop-Database.ps1` | このプロジェクトのローカルDBを停止。アプリ終了後に実行。 |
-| `.\Test-App.ps1` | DBを起動し、翻訳処理のJavaScriptテストとJUnitを実行。Node.jsが必要。 |
+| `.\Test-App.ps1` | DBを起動し、会話・翻訳処理のJavaScriptテストとJUnitを実行。Node.jsが必要。 |
 
 ## 環境変数
 
@@ -237,6 +239,7 @@ translate-chat/
 │   │       └── schema.sql            # テーブル・インデックス定義
 │   └── test/java/jp/translatechat/    # JUnitテスト
 ├── tests/translator.test.mjs         # 翻訳処理のJavaScriptテスト
+├── tests/message-feed.test.mjs       # 新着取得と送信が重なる場合の回帰テスト
 ├── tests/docker-smoke.test.mjs       # コンテナ経由の会話・保存の検証
 ├── docs/
 │   ├── requirements.md              # 要件定義書
@@ -269,18 +272,18 @@ Docker版を起動してから実行します。
 
 架空の3人で部屋の作成・参加・送信・退出・再入室を確認し、不正な通信元からの送信を拒否することも確認します。途中で、このプロジェクトのアプリとDBのコンテナを再作成し、同じ参加情報と会話履歴を復元できるか検証します。検証中は一時的に接続できなくなるため、通常の会話中には実行しないでください。テスト用の部屋と発言はDBに残ります。
 
-JUnitと翻訳処理のテストは、従来のローカル環境を準備した上で実行できます。
+JUnitと会話・翻訳処理のJavaScriptテストは、従来のローカル環境を準備した上で実行できます。
 
 ```powershell
 .\Test-App.ps1
 ```
 
-JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、実際のHTTP通信と保存処理を確認します。JavaScriptのテストではChromeの翻訳機能を代替するテスト用処理を使い、翻訳準備・翻訳の失敗と再試行を確認します。実際の訳文の品質は、Chromeで別途確認します。
+JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、実際のHTTP通信と保存処理を確認します。JavaScriptのテストでは、送信と新着取得が重なった場合の取りこぼし、過去履歴・重複応答の扱い、別室へ入る際の状態リセットを確認します。翻訳処理のテストではChromeの翻訳機能を代替するテスト用処理を使い、翻訳準備・翻訳の失敗と再試行を確認します。実際の訳文の品質は、Chromeで別途確認します。
 
 | 確認方法 | 確認内容・結果（2026年10月18日時点） |
 |---|---|
-| JUnit | 14件成功。部屋・参加・送信・履歴・入力制限・通信元の検証など。 |
-| JavaScript | 翻訳処理の3件成功。 |
+| JUnit | 15件成功。部屋・参加・送信・履歴・入力制限・通信元・同時送信時の保存順序を検証。 |
+| JavaScript | 会話処理3件・翻訳処理3件の計6件成功。 |
 | Dockerの結合テスト | 1件成功。3人の会話・不正な通信元の拒否・退出・再入室・コンテナ再作成後の履歴保持を確認。 |
 | GitHub Actions | 上記テスト、JavaScriptの構文チェック、公開用コンテナのビルドが成功。 |
 | ローカルのChrome | 双方向翻訳・原文表示・3人での参加・退出・再入室・サーバー再起動後の履歴を確認。翻訳準備に失敗しても原文を送受信できることを確認。 |

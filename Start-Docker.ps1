@@ -39,5 +39,5 @@ try {
 if (-not $taskReady) {
     throw 'App did not become ready. Check: docker compose --env-file .local/docker.env logs --tail 80 app'
 }
-Write-Host "Ready: $taskUrl"
+Write-Host "Talklear ready: $taskUrl"
 Write-Host 'Stop with .\Stop-Docker.ps1. Conversation history is kept in the Docker volume.'

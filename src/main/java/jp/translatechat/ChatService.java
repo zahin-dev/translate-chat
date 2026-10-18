@@ -117,6 +117,10 @@ public class ChatService {
         try { clientId = UUID.fromString(request.clientId()); }
         catch (IllegalArgumentException | NullPointerException e) { throw failure(HttpStatus.BAD_REQUEST, "INVALID_INPUT"); }
 
+        // Allocate IDs in commit order within a room, so polling cannot skip an uncommitted lower ID.
+        // NO KEY UPDATE still allows participants to join through the room's foreign key.
+        db.queryForObject("SELECT id FROM chat_rooms WHERE id=? FOR NO KEY UPDATE", UUID.class, self.roomId());
+
         List<Message> existing = db.query(messageSelect() + " WHERE m.room_id=? AND m.participant_id=? AND m.client_id=?",
                 this::mapMessage, self.roomId(), self.id(), clientId);
         if (!existing.isEmpty()) { return sameRequest(existing.getFirst(), text, request.sourceLanguage()); }

@@ -45,8 +45,8 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Translation logic
-        run: node --test tests/translator.test.mjs
+      - name: Message and translation logic
+        run: node --test tests/translator.test.mjs tests/message-feed.test.mjs
       - name: Frontend syntax
         run: |
           for file in src/main/resources/static/*.js; do node --check "$file"; done

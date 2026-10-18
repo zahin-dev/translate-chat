@@ -13,7 +13,7 @@
 
 ## 選んだ構成
 
-ローカルでもDockerを使う方針を本人が了承した。`compose.yaml` でアプリとPostgreSQLを起動し、公開用と同じ `Dockerfile.vercel` を利用する。ローカルDBはDockerの名前付きボリュームに保存し、クラウドはNeonを使う。Compose自体をVercelへ配置する構成ではない。起動・停止・検証は `README.md` を参照。
+ローカルでもDockerを使う方針を本人が了承した。`compose.yaml` でアプリとPostgreSQLを起動し、公開用と同じ `Dockerfile.vercel` を利用する。ローカルDBはDockerの名前付きボリュームに保存し、クラウドはNeonを使う。Compose自体をVercelへ配置する構成ではない。起動・停止・検証は [README](../README.md) を参照。
 
 | 役割 | 候補・方針 | 理由と制約 |
 |---|---|---|

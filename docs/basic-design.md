@@ -4,7 +4,7 @@
 更新日：2026年10月18日（日本時間）  
 状態：本人がローカル版の完成を確認し、公開準備へ移行した。実装上の初期値と、本人が恒久的に合意した仕様は区別する。
 
-配布版の `week1/design.md` の章構成を基に、`requirements.md` を具体化する。決定済みと記したもの以外の実装詳細は**提案**であり、保存の了承を設計全体の確定とは扱わない。
+配布された基本設計テンプレートの章構成を基に、[要件定義書](requirements.md) を具体化する。決定済みと記したもの以外の実装詳細は**提案**であり、保存の了承を設計全体の確定とは扱わない。
 
 ## 1. 画面設計
 
@@ -143,7 +143,7 @@ Chromeで日英双方向の翻訳・原文表示、3人の参加、未送信時�
 
 ## 6. おおまかなファイル構成
 
-次は現在の主な配置。起動方法は `../README.md` を参照。
+次は現在の主な配置。起動方法は [README](../README.md) を参照。
 
 ```text
 translate_app/
@@ -153,9 +153,10 @@ translate_app/
 ├─ Start-Docker.ps1 / Stop-Docker.ps1 / Test-Docker.ps1
 ├─ scripts/                  ローカル環境・DB準備
 ├─ tests/                    翻訳処理のJavaScriptテスト
-├─ week1/
+├─ docs/
 │  ├─ requirements.md
-│  └─ design.md
+│  ├─ basic-design.md
+│  └─ deployment.md
 └─ src/
    ├─ main/
    │  ├─ java/                 サーバー側の処理

@@ -6,7 +6,7 @@ target/
 tests/
 src/test/
 scripts/
-week1/
+docs/
 *.ps1
 *.log
 .env

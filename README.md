@@ -50,7 +50,7 @@
 | クラウド版 | Vercelプロジェクトを作成済み。Neon接続・環境変数設定・デプロイ・公開URLでの検証は準備中。 |
 | アプリの公開URL | 未発行。現在はローカル環境で利用できます。 |
 
-クラウド公開は **Vercel Hobby + Neon Free** を予定しています。手順と確認項目は [DEPLOYMENT.md](DEPLOYMENT.md) にまとめています。
+クラウド公開は **Vercel Hobby + Neon Free** を予定しています。手順と確認項目は [公開手順](docs/deployment.md) にまとめています。
 
 ## 技術構成
 
@@ -214,7 +214,7 @@ Dockerのアプリには `compose.yaml` からDB接続先 `jdbc:postgresql://db:
 | `CHAT_PUBLIC_ORIGIN` | 送信を許可する公開URLのオリジン | 指定不要 | 必須。例：`https://YOUR_APP_HOST`。パスを含めない |
 | `CHAT_TEST_DB_URL` | JUnit用DBの接続先 | 標準 `jdbc:postgresql://127.0.0.1:55432/translate_chat_test` | GitHub Actionsでテスト専用DBを指定 |
 
-[.env.example](.env.example) は公開用設定の記入例です。**コピーしただけではSpring Bootは読み込みません。** 公開先の管理画面で環境変数として登録します。詳しくは [公開手順](DEPLOYMENT.md#vercelで設定する値) を参照してください。
+[.env.example](.env.example) は公開用設定の記入例です。**コピーしただけではSpring Bootは読み込みません。** 公開先の管理画面で環境変数として登録します。詳しくは [公開手順](docs/deployment.md#vercelで設定する値) を参照してください。
 
 実際のパスワードや会話履歴をGitHubへ登録しないでください。`.local/`・`.tools/`・`.env`・Vercelのローカル接続情報はGit管理から除外しています。`.local/` を削除すると、会話履歴や接続に必要な情報を失います。
 
@@ -238,11 +238,12 @@ translate-chat/
 │   └── test/java/jp/translatechat/    # JUnitテスト
 ├── tests/translator.test.mjs         # 翻訳処理のJavaScriptテスト
 ├── tests/docker-smoke.test.mjs       # コンテナ経由の会話・保存の検証
-├── week1/
+├── docs/
 │   ├── requirements.md              # 要件定義書
-│   └── design.md                    # 基本設計書
+│   ├── basic-design.md              # 基本設計書
+│   └── deployment.md                # 公開手順・進捗
 ├── .env.example                     # 公開用の環境変数の例
-├── Dockerfile.vercel                # 公開用イメージのビルド・実行設定
+├── Dockerfile.vercel                # ローカル・公開で共用するイメージ定義
 ├── compose.yaml                     # ローカル用のアプリ・DB・保存領域
 ├── vercel.json                      # Vercel設定
 ├── pom.xml                          # Javaの依存関係・ビルド設定
@@ -253,7 +254,6 @@ translate-chat/
 ├── Start-Docker.ps1                  # Docker版のビルド・起動
 ├── Stop-Docker.ps1                   # Docker版の停止（履歴を維持）
 ├── Test-Docker.ps1                   # Docker版の動作・保存の自動検証
-├── DEPLOYMENT.md                    # 公開手順・進捗
 └── README.md
 ```
 
@@ -321,10 +321,8 @@ JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、�
 
 | 資料 | 内容 |
 |---|---|
-| [要件定義書](week1/requirements.md) | 目的・利用者・機能・対象範囲。 |
-| [基本設計書](week1/design.md) | 画面・処理・データの設計。 |
-| [公開手順](DEPLOYMENT.md) | Vercel・Neonの構成、設定、公開までの残作業。 |
+| [要件定義書](docs/requirements.md) | 目的・利用者・機能・対象範囲。 |
+| [基本設計書](docs/basic-design.md) | 画面・処理・データの設計。 |
+| [公開手順](docs/deployment.md) | Vercel・Neonの構成、設定、公開までの残作業。 |
 | [DB定義](src/main/resources/schema.sql) | 実装で使用するテーブルと制約。 |
 | [自動検証の定義](.github/workflows/ci.yml) | GitHub Actionsの実行内容。 |
-
-READMEの構成は、[「全プロジェクトで重宝されるイケてるREADMEを作成しよう！」](https://qiita.com/shun198/items/c983c713452c041ef787) を参考に、このプロジェクトの実際の構成に合わせて整理しました。

@@ -44,6 +44,7 @@
 | 項目 | 状態 |
 |---|---|
 | ローカル版 | 完成。Windows上で起動・会話・翻訳を確認済み。 |
+| Docker版 | ローカルで起動、グループ会話、双方向翻訳、コンテナ再作成後の履歴保持を確認済み。 |
 | ソースコード | [GitHubで公開中](https://github.com/zahin-dev/translate-chat)。 |
 | 自動検証 | [JUnit・JavaScriptテスト・コンテナビルドが成功](https://github.com/zahin-dev/translate-chat/actions/runs/39104069979)。 |
 | クラウド版 | Vercelプロジェクトを作成済み。Neon接続・環境変数設定・デプロイ・公開URLでの検証は準備中。 |
@@ -58,11 +59,11 @@
 | サーバー・API | Java 21 / Spring Boot 3.5.16 / Spring JDBC |
 | 画面 | HTML / CSS / JavaScript |
 | 翻訳・言語判定 | Chrome Translator API / LanguageDetector API |
-| データベース | PostgreSQL 18.6（ローカル） |
-| ビルド | Apache Maven 3.9.16 |
+| データベース | PostgreSQL 18.6（Docker / 従来のローカル起動） |
+| ビルド | Apache Maven 3.9（Docker）/ 3.9.16（従来起動） |
 | テスト | JUnit / Spring Boot Test / Node.js標準テスト |
 | 継続的な検証 | GitHub Actions |
-| 公開用の構成 | Dockerコンテナ / Vercel / Neon PostgreSQL（準備中） |
+| 実行環境 | Docker / Docker Compose。クラウドはVercel / Neon PostgreSQLを準備中 |
 
 ```mermaid
 flowchart LR
@@ -75,7 +76,42 @@ flowchart LR
 
 ## ローカルで起動する
 
-### 必要なもの
+### Dockerで起動する（標準の方法）
+
+必要なものは、Windows 64bit環境、PowerShell、Git、Docker Desktop（Linuxコンテナ）、PC版Chromeです。自動テストを行う場合はNode.jsも必要です。初回はインターネットからDockerイメージと依存ライブラリを取得します。Java・Maven・PostgreSQLをPCへ個別に導入する必要はありません。
+
+初めてソースを取得する場合は実行します。
+
+```powershell
+git clone https://github.com/zahin-dev/translate-chat.git
+cd translate-chat
+```
+
+Docker Desktopを起動し、プロジェクトのフォルダで実行します。取得済みの場合も、このコマンドから始められます。
+
+```powershell
+.\Start-Docker.ps1
+```
+
+準備完了後、**[http://localhost:8080/](http://localhost:8080/)** を開きます。アプリとDBはバックグラウンドで動きます。終了する場合は実行します。
+
+```powershell
+.\Stop-Docker.ps1
+```
+
+- アプリとDBの起動・停止をまとめて行います。DBの準備が整ってからアプリを起動します。
+- 初回にDBパスワードを生成し、Git管理外の `.local/docker.env` に保存します。同じファイルを次回以降も使います。
+- Docker用の会話履歴は名前付きボリューム `translate-chat-local_postgres-data` に保存します。通常の停止・コンテナ再作成では履歴を残します。Docker Desktop等からこのボリュームを削除すると履歴を失います。
+- 従来の `.local/postgres/` の履歴とは別の保存先です。既存データを自動移行しません。`.local/docker.env` も接続に必要なため保管してください。
+- アプリへの接続はこのPCの8080番ポートに限定し、DBのポートはPCへ公開しません。
+- ソースを変更した場合も `.\Start-Docker.ps1` で再ビルドします。変更がない場合は `.\Start-Docker.ps1 -NoBuild` でビルドを省略できます。
+- ポートを `-AppPort` で変更すると、次回以降もその番号で起動します。明示的に変更しない限り、保存済みの番号を引き継ぎます。
+
+`localhost` は操作中のPCを指します。友人からの接続にはクラウド公開が必要です。Docker Composeはローカル用で、クラウドは同じ `Dockerfile.vercel` と外部のNeon DBを使う構成です。
+
+### Dockerを使わない従来の起動方法
+
+#### 必要なもの
 
 - Windows 64bit環境とPowerShell。
 - ソースの取得に使うGit。
@@ -85,7 +121,7 @@ flowchart LR
 
 Java・Maven・PostgreSQLは初回準備スクリプトがプロジェクト内に導入します。ローカル起動にDockerは不要です。
 
-### 初回の準備
+#### 初回の準備
 
 PowerShellで、プロジェクトを置きたいフォルダへ移動してから実行します。
 
@@ -99,7 +135,7 @@ cd translate-chat
 
 `Setup.ps1` はJava・Maven・PostgreSQLをダウンロードしてチェックサムを照合し、アプリのビルドとローカルDBの準備を行います。ツールは `.tools/`、DBのデータと生成したパスワードは `.local/` に保存します。Windows全体のPATHやデータベースサービスの登録は変更しません。Node.jsはこのスクリプトでは導入しません。
 
-### アプリの起動
+#### アプリの起動
 
 プロジェクトのフォルダで実行します。
 
@@ -111,7 +147,7 @@ cd translate-chat
 
 `localhost` は操作中のPCを指します。別のPCや海外の友人からアクセスするには、クラウド公開が必要です。
 
-### 終了
+#### 終了
 
 起動したPowerShellで `Ctrl + C` を押すとアプリを終了します。DBは起動したままなので、停止する場合は続けて実行します。
 
@@ -141,6 +177,12 @@ cd translate-chat
 
 | コマンド | 内容 |
 |---|---|
+| `.\Start-Docker.ps1` | DockerでアプリとDBをビルド・起動。標準の起動方法。 |
+| `.\Start-Docker.ps1 -NoBuild` | 既存のイメージで起動。ソース変更後は通常の起動で再ビルド。 |
+| `.\Start-Docker.ps1 -AppPort 8081` | Dockerのアプリを `http://localhost:8081/` で起動。 |
+| `.\Stop-Docker.ps1` | DockerのアプリとDBを停止し、コンテナを除去。保存用ボリュームは維持。 |
+| `.\Test-Docker.ps1` | 起動中のDocker版で会話と保存を検証。検証中にこのプロジェクトのコンテナを再作成。Node.jsが必要。 |
+| `docker compose --env-file .local/docker.env logs --tail 80 app` | Docker版アプリの直近のログを表示。 |
 | `.\Setup.ps1` | 初回のツール取得・ビルド・ローカルDB準備。 |
 | `.\Start-App.ps1` | DBとアプリを起動。アプリの標準ポートは8080。 |
 | `.\Start-App.ps1 -AppPort 8081` | アプリを別のポートで起動。開くURLは `http://localhost:8081/`。 |
@@ -150,9 +192,18 @@ cd translate-chat
 
 ## 環境変数
 
-環境変数は、接続先などをコードの外から指定するための設定です。**ローカルでは起動スクリプトがDB接続情報を設定するため、通常は手入力不要です。**
+環境変数は、接続先などをコードの外から指定するための設定です。**ローカルでは起動スクリプトが設定するため、通常は手入力不要です。**
 
-| 名前 | 役割 | ローカルでの値・扱い | クラウドでの扱い |
+Docker用の `.local/docker.env` は `Start-Docker.ps1` が生成し、Docker Composeが読み込みます。
+
+| 名前 | 内容 |
+|---|---|
+| `CHAT_DOCKER_PORT` | PC側のアプリのポート。標準8080。`-AppPort` で変更すると保存。 |
+| `CHAT_DOCKER_DB_PASSWORD` | 初回生成したDocker用DBパスワード。次回以降も同じ値を使用。 |
+
+Dockerのアプリには `compose.yaml` からDB接続先 `jdbc:postgresql://db:5432/translate_chat`、ユーザー `chat`、生成したパスワード、公開元 `http://localhost:ポート番号` を渡します。
+
+| 名前 | 役割 | 従来のローカル起動での値・扱い | クラウドでの扱い |
 |---|---|---|---|
 | `SPRING_PROFILES_ACTIVE` | 実行環境の設定を選択 | 指定不要 | コンテナで `cloud` を指定済み |
 | `PORT` | アプリの待受ポート | `Start-App.ps1` が設定。標準8080 | コンテナと `vercel.json` で8080を指定済み |
@@ -174,6 +225,7 @@ translate-chat/
 ├── .github/workflows/ci.yml          # 自動テスト・コンテナビルド
 ├── scripts/
 │   ├── LocalEnvironment.ps1          # ローカルのJava・Maven・DBの管理
+│   ├── DockerEnvironment.ps1         # Dockerの確認・専用設定・Compose呼び出し
 │   └── DatabaseSetup.java            # ローカルDBの作成
 ├── src/
 │   ├── main/
@@ -185,17 +237,22 @@ translate-chat/
 │   │       └── schema.sql            # テーブル・インデックス定義
 │   └── test/java/jp/translatechat/    # JUnitテスト
 ├── tests/translator.test.mjs         # 翻訳処理のJavaScriptテスト
+├── tests/docker-smoke.test.mjs       # コンテナ経由の会話・保存の検証
 ├── week1/
 │   ├── requirements.md              # 要件定義書
 │   └── design.md                    # 基本設計書
 ├── .env.example                     # 公開用の環境変数の例
 ├── Dockerfile.vercel                # 公開用イメージのビルド・実行設定
+├── compose.yaml                     # ローカル用のアプリ・DB・保存領域
 ├── vercel.json                      # Vercel設定
 ├── pom.xml                          # Javaの依存関係・ビルド設定
 ├── Setup.ps1                        # 初回準備
 ├── Start-App.ps1                     # アプリ起動
 ├── Stop-Database.ps1                 # ローカルDB停止
 ├── Test-App.ps1                      # 自動テスト
+├── Start-Docker.ps1                  # Docker版のビルド・起動
+├── Stop-Docker.ps1                   # Docker版の停止（履歴を維持）
+├── Test-Docker.ps1                   # Docker版の動作・保存の自動検証
 ├── DEPLOYMENT.md                    # 公開手順・進捗
 └── README.md
 ```
@@ -203,6 +260,16 @@ translate-chat/
 実行時には、Git管理外の `.tools/`（ツール・ライブラリ）、`.local/`（DB・ログ・接続情報）、`target/`（ビルド結果）も作成されます。
 
 ## テスト・動作確認
+
+Docker版を起動してから実行します。
+
+```powershell
+.\Test-Docker.ps1
+```
+
+架空の3人で部屋の作成・参加・送信・退出・再入室を確認し、不正な通信元からの送信を拒否することも確認します。途中で、このプロジェクトのアプリとDBのコンテナを再作成し、同じ参加情報と会話履歴を復元できるか検証します。検証中は一時的に接続できなくなるため、通常の会話中には実行しないでください。テスト用の部屋と発言はDBに残ります。
+
+JUnitと翻訳処理のテストは、従来のローカル環境を準備した上で実行できます。
 
 ```powershell
 .\Test-App.ps1
@@ -214,6 +281,7 @@ JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、�
 |---|---|
 | JUnit | 14件成功。部屋・参加・送信・履歴・入力制限・通信元の検証など。 |
 | JavaScript | 翻訳処理の3件成功。 |
+| Dockerの結合テスト | 1件成功。3人の会話・不正な通信元の拒否・退出・再入室・コンテナ再作成後の履歴保持を確認。 |
 | GitHub Actions | 上記テスト、JavaScriptの構文チェック、公開用コンテナのビルドが成功。 |
 | ローカルのChrome | 双方向翻訳・原文表示・3人での参加・退出・再入室・サーバー再起動後の履歴を確認。翻訳準備に失敗しても原文を送受信できることを確認。 |
 | クラウドの公開URL | 未検証。デプロイ後に確認予定。 |
@@ -224,6 +292,11 @@ JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、�
 
 | 症状 | 確認すること・対処 |
 |---|---|
+| Dockerエンジンに接続できない | Docker Desktopを起動し、Linuxコンテナを使っていることを確認してください。 |
+| Dockerで8080番ポートを使えない | 従来のアプリが起動中でないか確認するか、`.\Start-Docker.ps1 -AppPort 8081` を使ってください。 |
+| Dockerイメージの取得に失敗する | 接続状況を確認し、`.\Start-Docker.ps1` を再実行してください。ビルド中のJavaイメージ取得が失敗する場合は、`docker pull eclipse-temurin:21-jre-jammy` と `docker pull maven:3.9-eclipse-temurin-21` で公式イメージを先に取得してから再実行できます。 |
+| Docker版が起動完了しない | `docker compose --env-file .local/docker.env logs --tail 80 app` でログを確認してください。DBのログは末尾の `app` を `db` に変えて確認できます。 |
+| Docker用DBはあるが設定ファイルがないと言われる | `.local/docker.env` を元のバックアップから復元してください。別のパスワードで自動初期化しない設計です。 |
 | 「先に Setup.ps1 を実行してください」と表示される | プロジェクトのフォルダで `.\Setup.ps1` を実行してから起動してください。 |
 | ダウンロード・初回準備に失敗する | 接続状況とエラーを確認してください。チェックサム不一致の場合は確認処理を無効にせず、対象ファイルと取得元を確認してください。 |
 | 8080番ポートが使用中 | 既存のアプリを確認するか、`.\Start-App.ps1 -AppPort 8081` で起動してください。 |

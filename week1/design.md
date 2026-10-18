@@ -79,6 +79,7 @@ PostgreSQLを使う。配布ひな形の「JSONファイルに保存する」前
 | PostgreSQL | 部屋と会話履歴等の保存。 |
 | JUnit | サーバー側の処理の自動テスト。 |
 | Chrome Translator API | PC版Chromeの端末内で日英翻訳を行う。 |
+| Docker / Docker Compose | ローカルのアプリ・DBをコンテナで起動。公開用アプリと同じイメージ定義を使用する。 |
 
 ### 構成案
 
@@ -86,7 +87,10 @@ PostgreSQLを使う。配布ひな形の「JSONファイルに保存する」前
 - JavaScriptがメッセージを受け取り、利用者のPC内の翻訳機能で表示する文章を作る。
 - 原文の送受信・保存にはアプリのサーバーとデータベースを使う。翻訳が端末内でできることを、チャット全体がオフラインで動くという意味にはしない。
 - 初期実装：2秒ごとに新着の追加分を取得する。最初は最近100件を表示し、以前の会話を追加取得できる。
-- 使用環境：Temurin Java 21.0.12.1、Spring Boot 3.5.16、Maven 3.9.16、PostgreSQL 18.6。道具は `.tools/`、DBは `.local/` に配置し、アプリとDBはループバックアドレスで起動する。
+- 使用環境：Java 21、Spring Boot 3.5.16、Maven 3.9、PostgreSQL 18.6。標準のローカル起動はDocker Composeへ変更し、アプリは `Dockerfile.vercel`、DBは公式PostgreSQLイメージを使う。DBのヘルスチェックが成功してからアプリを起動する。
+- DockerのPC側の公開先は `127.0.0.1:8080`（変更可能）。DBのポートはPCへ公開せず、アプリから `db:5432` で接続する。cloudプロファイルの `CHAT_PUBLIC_ORIGIN` は `http://localhost:PC側ポート` に設定する。
+- DockerのDBは名前付きボリューム `translate-chat-local_postgres-data` に保存。PostgreSQL 18の仕様に合わせ `/var/lib/postgresql` へマウントする。初回生成したパスワードとポートはGit管理外の `.local/docker.env` に保存する。停止ではボリュームを削除しない。ボリュームが存在し設定が失われた場合は、パスワードを再生成せず復元を促す。
+- 従来のポータブル起動も維持する。Temurin Java 21.0.12.1、Maven 3.9.16等は `.tools/`、DBは `.local/postgres/`。Dockerの保存先とは分離し、自動移行しない。
 - DB操作にはSpring JDBCとPostgreSQL JDBCを使い、画面は静的ファイルとしてSpring Bootから配信する。
 - 本人の次段階への移行指示を受け、Gitで完成時点のコードを記録し、GitHubで公開する準備へ進む。過去の開発履歴を後から作ったものとは扱わない。
 - Python用の仮想環境は、このJava構成の準備手順として自動採用しない。
@@ -123,6 +127,8 @@ PostgreSQLを使う。配布ひな形の「JSONファイルに保存する」前
 
 ### テスト・検証の方針と結果
 
+Docker移行時の確認（2026年10月18日）：`Test-Docker.ps1` の結合テスト1件と翻訳処理のJavaScriptテスト3件が成功。アプリとDBを停止・除去して再作成しても、同じ参加情報で保存済み発言を取得できた。保存設定ファイルが失われた場合に、既存ボリュームを残して起動を拒否することも確認。ChromeでDocker版へ2人が参加し、日本語から英語・英語から日本語の翻訳を確認した。このPCでは8080番が使用できないため、Docker版は8081番で起動し、次回の起動にもその番号を引き継ぐ。既存の `.local/postgres/` は変更していない。
+
 - JUnit等で部屋の照合、入力検証、保存・取得、部屋間の分離を確認する。
 - 複数の独立したブラウザ利用状態で、2人・複数人の会話と入退室を確認する。
 - 日本語・英語を読む参加者が同じ会話を読み、原文も確認できることを実機で検証する。
@@ -143,6 +149,8 @@ Chromeで日英双方向の翻訳・原文表示、3人の参加、未送信時�
 translate_app/
 ├─ README.md / pom.xml
 ├─ Setup.ps1 / Start-App.ps1 / Test-App.ps1 / Stop-Database.ps1
+├─ compose.yaml / Dockerfile.vercel
+├─ Start-Docker.ps1 / Stop-Docker.ps1 / Test-Docker.ps1
 ├─ scripts/                  ローカル環境・DB準備
 ├─ tests/                    翻訳処理のJavaScriptテスト
 ├─ week1/

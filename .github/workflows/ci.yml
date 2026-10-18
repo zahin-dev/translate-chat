@@ -30,6 +30,8 @@ jobs:
       CHAT_DB_USER: chat
       CHAT_DB_PASSWORD: ci-test-only
       CHAT_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/translate_chat_test
+      CHAT_DOCKER_DB_PASSWORD: ci-container-test-only
+      CHAT_SMOKE_RECREATE: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -51,4 +53,14 @@ jobs:
       - name: HTTP, database and origin checks
         run: mvn -B verify
       - name: Cloud image
-        run: docker build -f Dockerfile.vercel -t translate-chat:ci .
+        run: docker build -f Dockerfile.vercel -t translate-chat:local .
+      - name: Docker conversation and persistence
+        run: |
+          docker compose up -d --no-build
+          node --test tests/docker-smoke.test.mjs
+      - name: Docker logs on failure
+        if: failure()
+        run: docker compose logs --tail 80
+      - name: Stop project containers
+        if: always()
+        run: docker compose down

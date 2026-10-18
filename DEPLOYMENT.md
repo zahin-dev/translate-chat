@@ -6,11 +6,14 @@
 
 - [GitHubへのコード公開](https://github.com/zahin-dev/translate-chat)：完了。初回の記録は完成したローカル版と公開準備のコードを含む。
 - [GitHub Actions](https://github.com/zahin-dev/translate-chat/actions/runs/39104069979)：JUnit 14件・JavaScriptテスト3件・フロントエンド構文・Dockerコンテナのビルドが成功。
+- Dockerでのローカル実行：アプリとPostgreSQLの起動、3人の会話、不正な通信元の拒否、コンテナ再作成後の履歴保持を確認済み。Chromeで双方向の翻訳も確認。起動・停止・検証スクリプトとComposeによる会話の自動検証を追加した。
 - [Vercelプロジェクト](https://vercel.com/zahin-dev1/translate-chat)：作成済み。対象アカウントがHobbyであることをダッシュボードでも確認。既存の別アプリは変更していない。
 - Neon：Vercelダッシュボードの「Install Integration」で規約同意待ち。接続ツールはDB連携一覧の取得に権限がなく、ダッシュボード経由で準備する。利用規約への同意とアカウント情報の共有は本人が確認する。
 - 公開用環境変数・クラウドDBへの初期化・アプリのデプロイ・公開URLでの確認：未完了。アプリがクラウドで動いたとはまだ扱わない。
 
 ## 選んだ構成
+
+ローカルでもDockerを使う方針を本人が了承した。`compose.yaml` でアプリとPostgreSQLを起動し、公開用と同じ `Dockerfile.vercel` を利用する。ローカルDBはDockerの名前付きボリュームに保存し、クラウドはNeonを使う。Compose自体をVercelへ配置する構成ではない。起動・停止・検証は `README.md` を参照。
 
 | 役割 | 候補・方針 | 理由と制約 |
 |---|---|---|

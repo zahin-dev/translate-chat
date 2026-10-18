@@ -2,6 +2,14 @@
 
 ローカル版は本人が完成を確認済み。次は、GitHubでコードを公開し、VercelとNeonの無料プランで友人がアクセスできるURLを用意する。公開完了は、実際のURLで会話を確認してから判断する。
 
+## 現在の状態（2026年10月18日）
+
+- [GitHubへのコード公開](https://github.com/zahin-dev/translate-chat)：完了。初回の記録は完成したローカル版と公開準備のコードを含む。
+- [GitHub Actions](https://github.com/zahin-dev/translate-chat/actions/runs/39104069979)：JUnit 14件・JavaScriptテスト3件・フロントエンド構文・Dockerコンテナのビルドが成功。
+- [Vercelプロジェクト](https://vercel.com/zahin-dev1/translate-chat)：作成済み。対象アカウントがHobbyであることをダッシュボードでも確認。既存の別アプリは変更していない。
+- Neon：Vercelダッシュボードの「Install Integration」で規約同意待ち。接続ツールはDB連携一覧の取得に権限がなく、ダッシュボード経由で準備する。利用規約への同意とアカウント情報の共有は本人が確認する。
+- 公開用環境変数・クラウドDBへの初期化・アプリのデプロイ・公開URLでの確認：未完了。アプリがクラウドで動いたとはまだ扱わない。
+
 ## 選んだ構成
 
 | 役割 | 候補・方針 | 理由と制約 |

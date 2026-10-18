@@ -2,7 +2,7 @@
 
 日本語話者と英語話者の友人が、同じ部屋で会話するローカルWebアプリです。「翻訳チャット」は内容を表す仮の表示名で、正式なアプリ名は未決定です。
 
-ローカル版は完成し、現在はGitHub・Vercelでの公開準備を進めています。構成と手順は [公開の進め方](DEPLOYMENT.md) を参照してください。
+ローカル版は完成し、[GitHubでソースを公開](https://github.com/zahin-dev/translate-chat)しています。[自動テストとコンテナビルド](https://github.com/zahin-dev/translate-chat/actions/runs/39104069979)も成功しました。Vercelの新規プロジェクトは作成済みで、Neonの接続とアプリURLでの検証が残っています。構成と手順は [公開の進め方](DEPLOYMENT.md) を参照してください。
 
 ## 起動する
 

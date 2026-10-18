@@ -7,6 +7,8 @@
 
 **慣れた言語で話そう！**
 
+**公開アプリ：[トークリアを開く](https://talklear-zahin-dev.vercel.app/)** — アカウント登録やVercelへのログインは不要です。
+
 言語が異なる友人と、翻訳アプリに文章をコピーする手間なく会話するためのWebアプリです。ルームIDで同じ部屋に参加し、それぞれが選んだ言語でメッセージを読めます。1対1とグループでの雑談に対応しています。
 
 正式名称は日本語 **「トークリア」**、英語 **「Talklear」** です。Talk（会話）＋Clear（明確に伝わる）を組み合わせています。現在の対応言語は日本語・英語です。
@@ -55,10 +57,10 @@
 | Docker版 | ローカルで起動、グループ会話、双方向翻訳、コンテナ再作成後の履歴保持を確認済み。 |
 | ソースコード | [GitHubで公開中](https://github.com/zahin-dev/translate-chat)。 |
 | 自動検証 | [GitHub Actions](https://github.com/zahin-dev/translate-chat/actions/workflows/ci.yml)でJUnit・JavaScript・Dockerの検証を実行。最新の結果をリンク先で確認できます。 |
-| クラウド版 | Vercelプロジェクトを作成済み。Neon接続・環境変数設定・デプロイ・公開URLでの検証は準備中。 |
-| アプリの公開URL | 未発行。現在はローカル環境で利用できます。 |
+| クラウド版 | Vercel Hobby + Neon Freeで公開。認証なしのアクセス、部屋作成・参加・送信・退出・再入室・履歴取得、Chromeでの日英双方向翻訳・原文表示を確認済み。 |
+| アプリの公開URL | [https://talklear-zahin-dev.vercel.app/](https://talklear-zahin-dev.vercel.app/) |
 
-クラウド公開は **Vercel Hobby + Neon Free** を予定しています。手順と確認項目は [公開手順](docs/deployment.md) にまとめています。
+クラウド公開は **Vercel Hobby + Neon Free** を使用しています。設定と確認項目は [公開手順](docs/deployment.md) にまとめています。
 
 ## 技術構成
 
@@ -71,7 +73,7 @@
 | ビルド | Apache Maven 3.9（Docker）/ 3.9.16（従来起動） |
 | テスト | JUnit / Spring Boot Test / Node.js標準テスト |
 | 継続的な検証 | GitHub Actions |
-| 実行環境 | Docker / Docker Compose。クラウドはVercel / Neon PostgreSQLを準備中 |
+| 実行環境 | Docker / Docker Compose。クラウドはVercel / Neon PostgreSQL |
 
 ```mermaid
 flowchart LR
@@ -115,7 +117,7 @@ Docker Desktopを起動し、プロジェクトのフォルダで実行します
 - ソースを変更した場合も `.\Start-Docker.ps1` で再ビルドします。変更がない場合は `.\Start-Docker.ps1 -NoBuild` でビルドを省略できます。
 - ポートを `-AppPort` で変更すると、次回以降もその番号で起動します。明示的に変更しない限り、保存済みの番号を引き継ぎます。
 
-`localhost` は操作中のPCを指します。友人からの接続にはクラウド公開が必要です。Docker Composeはローカル用で、クラウドは同じ `Dockerfile.vercel` と外部のNeon DBを使う構成です。
+`localhost` は操作中のPCを指します。友人と使う場合は [公開アプリ](https://talklear-zahin-dev.vercel.app/) を共有してください。Docker Composeはローカル用で、クラウドは同じ `Dockerfile.vercel` と外部のNeon DBを使う構成です。
 
 ### Dockerを使わない従来の起動方法
 
@@ -153,7 +155,7 @@ cd translate-chat
 
 起動後、PC版Chromeで **[http://localhost:8080/](http://localhost:8080/)** を開きます。DBはアプリの起動スクリプトが起動するので、別途操作する必要はありません。
 
-`localhost` は操作中のPCを指します。別のPCや海外の友人からアクセスするには、クラウド公開が必要です。
+`localhost` は操作中のPCを指します。別のPCや海外の友人とは [公開アプリ](https://talklear-zahin-dev.vercel.app/) を使って会話できます。
 
 #### 終了
 
@@ -216,13 +218,15 @@ Dockerのアプリには `compose.yaml` からDB接続先 `jdbc:postgresql://db:
 | `SPRING_PROFILES_ACTIVE` | 実行環境の設定を選択 | 指定不要 | コンテナで `cloud` を指定済み |
 | `PORT` | アプリの待受ポート | `Start-App.ps1` が設定。標準8080 | コンテナと `vercel.json` で8080を指定済み |
 | `CHAT_BIND_ADDRESS` | アプリが接続を受け付けるアドレス | 標準 `127.0.0.1` | cloud設定で `0.0.0.0` を使用 |
-| `CHAT_DB_URL` | PostgreSQLのJDBC接続URL | スクリプトが `jdbc:postgresql://127.0.0.1:55432/translate_chat` を設定 | Neonの接続先を設定。TLSを使用 |
-| `CHAT_DB_USER` | DBユーザー名 | スクリプトが `chat` を設定 | 公開用DBのユーザー名を設定 |
-| `CHAT_DB_PASSWORD` | DBパスワード | 初回生成し `.local/database-password.txt` から設定 | 公開先で秘密情報として設定 |
+| `CHAT_DB_URL` | PostgreSQLのJDBC接続URL | スクリプトが `jdbc:postgresql://127.0.0.1:55432/translate_chat` を設定 | 手動接続時に指定。Neon連携では `PGHOST`・`PGDATABASE` から構築 |
+| `CHAT_DB_USER` | DBユーザー名 | スクリプトが `chat` を設定 | 手動接続時に指定。Neon連携では `PGUSER` を使用 |
+| `CHAT_DB_PASSWORD` | DBパスワード | 初回生成し `.local/database-password.txt` から設定 | 手動接続時に秘密情報として指定。Neon連携では `PGPASSWORD` を使用 |
 | `CHAT_PUBLIC_ORIGIN` | 送信を許可する公開URLのオリジン | 指定不要 | 必須。例：`https://YOUR_APP_HOST`。パスを含めない |
 | `CHAT_TEST_DB_URL` | JUnit用DBの接続先 | 標準 `jdbc:postgresql://127.0.0.1:55432/translate_chat_test` | GitHub Actionsでテスト専用DBを指定 |
 
-[.env.example](.env.example) は公開用設定の記入例です。**コピーしただけではSpring Bootは読み込みません。** 公開先の管理画面で環境変数として登録します。詳しくは [公開手順](docs/deployment.md#vercelで設定する値) を参照してください。
+VercelのNeon連携は `PGHOST`・`PGDATABASE`・`PGUSER`・`PGPASSWORD` を本番環境へ自動登録します。アプリはこれらを読み取り、DBの証明書とホスト名を検証するTLS接続を使います。`CHAT_DB_*` を指定した場合は、そちらを優先します。
+
+[.env.example](.env.example) は手動接続時の設定例です。**コピーしただけではSpring Bootは読み込みません。** 公開先の管理画面で環境変数として登録します。詳しくは [公開手順](docs/deployment.md#vercelで設定する値) を参照してください。
 
 実際のパスワードや会話履歴をGitHubへ登録しないでください。`.local/`・`.tools/`・`.env`・Vercelのローカル接続情報はGit管理から除外しています。`.local/` を削除すると、会話履歴や接続に必要な情報を失います。
 
@@ -288,12 +292,12 @@ JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、�
 
 | 確認方法 | 確認内容・結果（2026年10月18日時点） |
 |---|---|
-| JUnit | 15件成功。部屋・参加・送信・履歴・入力制限・通信元・同時送信時の保存順序を検証。 |
+| JUnit | 17件成功。部屋・参加・送信・履歴・入力制限・通信元・同時送信時の保存順序、Neon連携と既存DB設定の互換性を検証。 |
 | JavaScript | 会話処理3件・翻訳処理3件の計6件成功。 |
 | Dockerの結合テスト | 1件成功。3人の会話・不正な通信元の拒否・退出・再入室・コンテナ再作成後の履歴保持を確認。 |
 | GitHub Actions | 上記テスト、JavaScriptの構文チェック、公開用コンテナのビルドが成功。 |
 | ローカルのChrome | 双方向翻訳・原文表示・3人での参加・退出・再入室・サーバー再起動後の履歴を確認。翻訳準備に失敗しても原文を送受信できることを確認。 |
-| クラウドの公開URL | 未検証。デプロイ後に確認予定。 |
+| クラウドの公開URL | 認証情報・Cookieを使わないHTTP検証で、部屋作成・3人参加・送信・不正な送信元の拒否・退出・再入室・履歴取得を確認。Chromeで日英双方向翻訳・原文表示を確認。 |
 
 ブラウザでの確認は開発時の動作検証です。利用者による継続的な使用や、翻訳品質の評価は今後の課題です。
 
@@ -313,7 +317,7 @@ JUnitでは、通常利用とは別のDB `translate_chat_test` に対して、�
 | DBのパスワードファイルがないと言われる | `.local/` を初期化せず、元のパスワードファイル・バックアップを確認してください。 |
 | `node` が見つからずテストできない | Node.jsが必要です。導入後にPowerShellを開き直し、`node --version` で確認してください。 |
 | 翻訳が始まらない・準備に失敗する | 対応するPC版Chromeで開き、接続状況を確認して「翻訳を準備する／再試行」を実行してください。利用できない間も原文で会話できます。 |
-| 別のPCから `localhost` に接続できない | `localhost` は各PC自身のアドレスです。友人との利用にはクラウド公開を行います。 |
+| 別のPCから `localhost` に接続できない | `localhost` は各PC自身のアドレスです。友人と使う場合は [公開アプリ](https://talklear-zahin-dev.vercel.app/) を共有してください。 |
 | `.env` に値を書いても反映されない | このアプリは `.env` を自動で読み込みません。起動プロセス、または公開先の環境変数として設定してください。 |
 | 公開先で起動・送信に失敗する | DBの接続設定と `CHAT_PUBLIC_ORIGIN` を確認してください。ブラウザで開いたURLのオリジンと設定値を一致させます。 |
 

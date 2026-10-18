@@ -15,7 +15,8 @@ async function request(path, body, member, requestOrigin = origin) {
       ...(member ? {'X-Participant-Token': member.token} : {}),
     },
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
-    signal: AbortSignal.timeout(5000),
+    // Public Java containers and the database can both be cold on the first request.
+    signal: AbortSignal.timeout(30000),
   });
 }
 
